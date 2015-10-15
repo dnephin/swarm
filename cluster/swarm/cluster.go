@@ -420,7 +420,7 @@ func (c *Cluster) RemoveVolumes(name string) (bool, error) {
 }
 
 // Pull is exported
-func (c *Cluster) Pull(name string, authConfig *dockerclient.AuthConfig, callback func(where, status string, err error)) {
+func (c *Cluster) Pull(name, tag string, authConfig *dockerclient.AuthConfig, callback func(where, status string, err error)) {
 	var wg sync.WaitGroup
 
 	c.RLock()
@@ -433,7 +433,7 @@ func (c *Cluster) Pull(name string, authConfig *dockerclient.AuthConfig, callbac
 			if callback != nil {
 				callback(engine.Name, "", nil)
 			}
-			err := engine.Pull(name, authConfig)
+			err := engine.Pull(name, tag, authConfig)
 			if callback != nil {
 				if err != nil {
 					callback(engine.Name, "", err)

@@ -487,12 +487,13 @@ func postImagesCreate(c *context, w http.ResponseWriter, r *http.Request) {
 			json.Unmarshal(buf, &authConfig)
 		}
 
-		if tag := r.Form.Get("tag"); tag != "" {
-			image += ":" + tag
+		if tag := r.Form.Get("tag"); tag == "" {
+			image, tag := parsers.ParseRepositoryTag(image)
 		}
 
 		errorFound := false
 		callback := func(what, status string, err error) {
+			image = image + ":" + tag
 			if err != nil {
 				errorFound = true
 				sendJSONMessage(wf, what, fmt.Sprintf("Pulling %s... : %s", image, err.Error()))
@@ -504,7 +505,7 @@ func postImagesCreate(c *context, w http.ResponseWriter, r *http.Request) {
 				sendJSONMessage(wf, what, fmt.Sprintf("Pulling %s... : %s", image, status))
 			}
 		}
-		c.cluster.Pull(image, &authConfig, callback)
+		c.cluster.Pull(image, tag, &authConfig, callback)
 
 		if errorFound {
 			sendErrorJSONMessage(wf, 1, "")

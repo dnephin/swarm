@@ -510,7 +510,7 @@ func (e *Engine) Create(config *ContainerConfig, name string, pullImage bool) (*
 			return nil, err
 		}
 		// Otherwise, try to pull the image...
-		if err = e.Pull(config.Image, nil); err != nil {
+		if err = e.Pull(config.Image, "", nil); err != nil {
 			return nil, err
 		}
 		// ...And try again.
@@ -572,11 +572,11 @@ func (e *Engine) CreateVolume(request *dockerclient.VolumeCreateRequest) (*Volum
 }
 
 // Pull an image on the engine
-func (e *Engine) Pull(image string, authConfig *dockerclient.AuthConfig) error {
-	if !strings.Contains(image, ":") {
-		image = image + ":latest"
+func (e *Engine) Pull(image, tag string, authConfig *dockerclient.AuthConfig) error {
+	if tag == "" {
+		tag = "latest"
 	}
-	if err := e.client.PullImage(image, authConfig); err != nil {
+	if err := e.client.PullImage(image, tag, authConfig); err != nil {
 		return err
 	}
 
