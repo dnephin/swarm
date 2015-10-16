@@ -41,5 +41,10 @@ function teardown() {
 	swarm_manage
 
 	run docker_swarm pull does_not_exist
+
+	printf '%s\n' "${lines[@]}"
 	[ "$status" -eq 1 ]
+	[ "${#lines[@]}" -eq 5 ]
+	[[ "${lines[3]}" == *"Error: image library/does_not_exist:latest not found"* ]]
+	[[ "${lines[4]}" == *"Error: image library/does_not_exist:latest not found"* ]]
 }

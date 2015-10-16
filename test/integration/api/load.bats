@@ -48,7 +48,9 @@ function teardown() {
 	temp_file=$(mktemp)
 
 	run docker_swarm load -i $temp_file
+	printf '%s\n' "${lines[@]}"
 	[ "$status" -eq 1 ]
+	[ "${#lines[@]}" -eq  2 ]
 
 	rm -f $temp_file
 }
