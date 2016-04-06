@@ -15,49 +15,13 @@ Otherwise, go read Docker's
 
 ### Development Environment Setup
 
-Swarm is written in [the Go programming language](http://golang.org) and manages its dependencies using [Godep](http://github.com/tools/godep).  This guide will walk you through installing Go, forking the Swarm repo, building Swarm from source and contributing pull requests (PRs) back to the Swarm project.
+Swarm is written in [the Go programming language](http://golang.org) and manages
+its dependencies using [Godep](http://github.com/tools/godep). Development is
+done using [dobi](http://github.com/dnephin/dobi).
+This guide will walk you through all the steps required to contribute to the
+Swarm project.
 
-#### Install git, Go and Godep
-If you don't already have `git` installed, you should install it.  For example, on Ubuntu:
-```sh
-sudo apt-get install git
-```
-
-You also need Go 1.5 or higher.  Download Go from [https://golang.org/dl/](https://golang.org/dl/).  To install on Linux:
-```sh
-tar xzvf go1.5.3.linux-amd64.tar.gz
-sudo mv go /usr/local
-```
-
-> **Note**: On Ubuntu, do not use `apt-get` to install Go.  Its repositories tend
-> to include older versions of Go.  Instead, install the latest Go manually using the
-> instructions provided on the Go site.
-
-Create a go project directory in your home directory:
-```sh
-mkdir ~/gocode    # any name is fine
-```
-
-Add these to your `.bashrc`:
-```sh
-export GOROOT=/usr/local/go
-export GOPATH=~/gocode
-export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
-```
-
-Close and reopen your terminal.
-
-Install Godep:
-
-```sh
-go get github.com/tools/godep
-```
-
-Install golint:
-
-```sh
-go get github.com/golang/lint/golint
-```
+To see a full list of project tasks run `dobi --list`.
 
 #### Fork the Swarm repo
 
@@ -114,20 +78,17 @@ Don't worry:  fetching the upstream and rebasing will not overwrite your local c
 
 ### Build the Swarm binary
 
-Build the binary, installing it to `$GOPATH/bin/swarm`:
-
 ```sh
-cd $GOPATH/src/github.com/docker/swarm
-godep go install .
+dobi binary
 ```
- 
+
 Run the binary you just created:
 
 ```sh
-$GOPATH/bin/swarm help
-$GOPATH/bin/swarm create
-$GOPATH/bin/swarm manage token://<cluster_id>
-$GOPATH/bin/swarm join --addr=<node_ip:2375> token://<cluster_id>
+dist/bin/swarm help
+dist/bin/swarm create
+dist/bin/swarm manage token://<cluster_id>
+dist/bin/swarm join --addr=<node_ip:2375> token://<cluster_id>
 ```
 
 #### Create a Swarm image for deployment
@@ -135,15 +96,15 @@ $GOPATH/bin/swarm join --addr=<node_ip:2375> token://<cluster_id>
 Swarm is distributed as a Docker image with a single `swarm` binary inside.  To create the image:
 
 ```sh
-docker build -t my_swarm .
+dobi dist-image
 ```
 
 Now you can run the same commands as above using the container:
 
 ```sh
-docker run my_swarm help
-docker run -d my_swarm join --addr=<node_ip:2375> token://<cluster_id>
-docker run -d -p <manager_port>:2375 my_swarm manage token://<cluster_id>
+docker run swarm:$USER help
+docker run -d swarm:$USER join --addr=<node_ip:2375> token://<cluster_id>
+docker run -d -p <manager_port>:2375 swarm:$USER manage token://<cluster_id>
 ```
 
 For complete documentation on how to use Swarm, refer to the Swarm section of [docs.docker.com](http://docs.docker.com/).
@@ -154,13 +115,13 @@ For complete documentation on how to use Swarm, refer to the Swarm section of [d
 To run unit tests:
 
 ```sh
-godep go test -race ./...
+dobi test-unit
 ```
 
 To run integration tests:
 
 ```sh
-./test/integration/run.sh
+dobi test-integration
 ```
 
 You can use this command to check if `*.bats` files are formatted correctly:
@@ -172,7 +133,7 @@ find test/ -type f \( -name "*.sh" -or -name "*.bash" -or -name "*.bats" \) -exe
 You can use this command to check if `*.go` files are formatted correctly:
 
 ```sh
-golint ./...
+dobi lint
 ```
 
 ### Submit a pull request (PR)

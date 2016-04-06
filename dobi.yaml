@@ -1,0 +1,97 @@
+#
+# dobi.yaml - task definitions for the project
+#
+
+meta:
+    default: all
+    unique_exec_id: "echo $USER"
+
+#
+# Volumes
+#
+
+source:
+    path: .
+    mount: /go/src/github.com/docker/swarm
+
+dist:
+    path: ./dist/bin/
+    mount: /go/bin/
+
+certs:
+    path: ./certs/
+    mount: /certs
+
+# TODO: make this a special resource that works in all environments
+docker-socket:
+    path: /var/run/docker.sock
+    mount: /var/run/docker.sock
+
+#
+# Images
+#
+
+builder:
+    image: swarm-dev
+    dockerfile: Dockerfile.build
+
+dist-image:
+    image: swarm
+    dockerfile: Dockerfile.dist
+    depends: [binary, copy-certs]
+
+# TODO: use a pre-build image directly from hub
+docker-image:
+    image: swarm-docker
+    dockerfile: Dockerfile.docker
+
+# TODO: use a pre-build image directly from hub
+certs-image:
+    image: swarm-docker
+    dockerfile: Dockerfile.certs
+
+#
+# Commands
+#
+
+binary:
+    use: builder
+    artifact: ./dist/bin/swarm
+    volumes: [source, dist]
+
+watch:
+    use: builder
+    volumes: [source]
+    command: "filewatcher -x .git -x dist -x vendor -x '**/*.swp' go test -v './${dir}'"
+
+test-unit:
+    use: builder
+    volumes: [source]
+    command: "godep go test -v ./..."
+
+# TODO: run.sh could be replaced by this resource once all container options
+# are supported
+test-integration:
+    use: docker-image
+    volumes: [source, docker-socket]
+    command: "./test/integration/run.sh"
+
+lint:
+    use: builder
+    volumes: [source]
+    command: "golint ./..."
+
+copy-certs:
+    use: certs-image
+    volumes: [certs]
+    command: "cp /etc/ssl/certs/ca-certificates.crt /certs/"
+
+#
+# Aliases
+#
+
+test:
+    tasks: [test-unit, test-integration]
+
+all:
+    tasks: [lint, test, binary, dist-image]

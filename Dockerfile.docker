@@ -1,0 +1,4 @@
+
+FROM dockerswarm/dind:1.10.3
+WORKDIR /go/src/github.com/docker/swarm
+ENTRYPOINT ["bash"]
